@@ -1,0 +1,22 @@
+# Deploying flash.ffu to eMMC
+
+if test "${reset_cause}" = "1" || test "${reset_cause}" = "11"; then
+  fatload mmc ${mmcdev}:1 ${uefi_addr} firmware_fit.merged
+  sf probe
+  sf erase 0 0xD0000
+  sf write ${fileaddr} 0x400 ${filesize}
+
+  fatload mmc ${mmcdev}:1 ${uefi_addr} ${uefi_file}
+  run bootuefi
+fi
+
+fatload mmc ${mmcdev}:1 ${uefi_addr} ${uefi_file}
+
+usb start
+setenv stdin serial,usbkbd
+setenv stdout serial,vga
+setenv stderr serial,vga
+
+echo If you have successfully flashed a new image to eMMC, remove the SD card.
+echo Or press the reset button to start WinPE to deploy Flash.ffu to eMMC.
+# echo Or type \'run bootuefi\' to start WinPE to deploy Flash.ffu to eMMC.
