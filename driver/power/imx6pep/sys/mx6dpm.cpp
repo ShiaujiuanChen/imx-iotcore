@@ -218,7 +218,7 @@ BOOLEAN MX6_PEP::DpmPrepareDevice (PEP_PREPARE_DEVICE* ArgsPtr)
     //
     switch (pepDeviceId) {
     case _DEVICE_ID::GPIO:
-        this->applyEnetWorkaround();
+//        this->applyEnetWorkaround();
         break;
 
     case _DEVICE_ID::GPU:
