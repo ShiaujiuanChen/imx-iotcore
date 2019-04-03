@@ -145,6 +145,10 @@ copy %BUILD_ROOT%\Wm8731Lcodec\* %PKG_ROOT%\Audio\ >NUL
 if errorlevel 1 (set FAILURE=wm8731L & goto ERROR)
 copy %REPO_ROOT%\driver\audio\codec\wm8731L\wm8731Lcodec.wm.xml %PKG_ROOT%\Audio\ >NUL
 
+copy %BUILD_ROOT%\vab820-sgtl5000codec\* %PKG_ROOT%\Audio\ >NUL
+if errorlevel 1 (set FAILURE=vab820-sgtl5000 & goto ERROR)
+copy %REPO_ROOT%\driver\audio\codec\vab820-sgtl5000codec\vab820-sgtl5000codec.wm.xml %PKG_ROOT%\Audio\ >NUL
+
 :: Copy HAL Extension Packages
 echo Copying HAL Extension Packages to %PKG_ROOT%
 if "%SOC%"=="iMX6" (

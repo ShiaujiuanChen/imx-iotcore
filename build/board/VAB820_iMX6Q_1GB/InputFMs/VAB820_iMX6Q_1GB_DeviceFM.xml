@@ -35,6 +35,11 @@
           <FeatureID>IMX_DRIVERS</FeatureID>
         </FeatureIDs>
       </PackageFile>
+      <PackageFile Path="%BSPPKG_DIR%" Name="NXP.iMX.vab820-sgtl5000codec.cab">
+        <FeatureIDs>
+          <FeatureID>IMX_DRIVERS</FeatureID>
+        </FeatureIDs>
+      </PackageFile>
       <PackageFile Path="%BSPPKG_DIR%" Name="NXP.iMX.imx6dod.cab">
         <FeatureIDs>
           <FeatureID>IMX_DRIVERS</FeatureID>
