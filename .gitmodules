@@ -1,3 +1,3 @@
 [submodule "driver/TrEE/OpteeCalls"]
 	path = driver/TrEE/OpteeCalls
-	url = https://github.com/ms-iot/OpteeCalls.git
+	url = http://mce-tfs03.taipei.via.com.tw:8080/tfs/DefaultCollection/ms-iot/_git/OpteeCalls
