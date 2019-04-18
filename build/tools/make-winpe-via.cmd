@@ -110,12 +110,6 @@ echo via_setup.cmd >> "%STARTNET_CMD%"
 echo Copying %SCRIPT_DIR%via_setup.cmd to %MOUNT_DIR%\Windows\System32\
 copy "%SCRIPT_DIR%via_setup.cmd" "%MOUNT_DIR%\Windows\System32\"
 
-echo Copying %SCRIPT_DIR%mk_sd_installer.cmd to %CD%
-copy "%SCRIPT_DIR%mk_sd_installer.cmd" "%CD%"
-
-echo Copying %SCRIPT_DIR%dd.exe to %CD%
-copy "%SCRIPT_DIR%dd.exe" "%CD%"
-
 echo Copying %SCRIPT_DIR%boot.scr %DEST%\
 copy "%SCRIPT_DIR%boot.scr" "%DEST%\"
 
