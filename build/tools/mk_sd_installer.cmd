@@ -6,6 +6,7 @@ setlocal enableextensions disabledelayedexpansion
 
 set DEST=winpe_imx
 set SCRIPT_DIR=%~dp0
+set SCRIPT_CMD=%0
 
 :: make WIM mount directory
 rmdir /s /q mount > NUL 2>&1
@@ -86,8 +87,8 @@ goto USAGE
 
 :USAGE
     echo.
-    echo make-winpe.cmd /apply disk_number [/ffu ffu_path]
-    echo make-winpe.cmd /clean
+    echo %SCRIPT_CMD% /apply disk_number [/ffu ffu_path]
+    echo %SCRIPT_CMD% /clean
     echo.
     echo Creates a WinPE image for i.MX
     echo Options:
@@ -101,11 +102,11 @@ goto USAGE
     echo Apply the WinPE image to an SD card (Physical Disk 7, use diskpart
     echo to find the disk number)
     echo.
-    echo    make-winpe.cmd /apply 7
+    echo    %SCRIPT_CMD% /apply 7
     echo.
     echo Clean up artifacts from a previous run of this script
     echo.
-    echo    make-winpe.cmd /clean
+    echo    %SCRIPT_CMD% /clean
     echo.
     exit /b 0
 

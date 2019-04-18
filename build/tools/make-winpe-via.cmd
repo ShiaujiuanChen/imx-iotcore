@@ -8,6 +8,7 @@ set WINPE_DIR=%ProgramFiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\
 set DEST=winpe_imx
 set FFU_DISK_NUM=1
 set SCRIPT_DIR=%~dp0
+set SCRIPT_CMD=%0
 
 :: make WIM mount directory
 rmdir /s /q mount > NUL 2>&1
@@ -213,10 +214,10 @@ exit /b 0
     exit /b 0
 
 :USAGE
-    echo make-winpe.cmd /builddir build_dir /firmware firmware_fit_path
+    echo %SCRIPT_CMD% /builddir build_dir /firmware firmware_fit_path
     echo   /uefi uefi_fit_path [/ffu ffu_path] [/ffudisk ffu_disk_number]
-    echo make-winpe.cmd /apply disk_number
-    echo make-winpe.cmd /clean
+    echo %SCRIPT_CMD% /apply disk_number
+    echo %SCRIPT_CMD% /clean
     echo.
     echo Creates a WinPE image for i.MX
     echo Options:
@@ -235,20 +236,20 @@ exit /b 0
     echo.
     echo Create a WinPE image.
     echo.
-    echo    make-winpe.cmd /builddir d:\build\Binaries\release\ARM /firmware d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootLoader\firmware_fit.merged /uefi d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootFirmware\uefi.fit
+    echo    %SCRIPT_CMD% /builddir d:\build\Binaries\release\ARM /firmware d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootLoader\firmware_fit.merged /uefi d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootFirmware\uefi.fit
     echo.
     echo Create a WinPE image that deploys an FFU to MMC.
     echo.
-    echo    make-winpe.cmd /builddir d:\build\Binaries\release\ARM /firmware d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootLoader\firmware_fit.merged /uefi d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootFirmware\uefi.fit /ffu d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\HummingBoardEdge_iMX6Q_2GB_TestOEMInput.xml.Release.ffu
+    echo    %SCRIPT_CMD% /builddir d:\build\Binaries\release\ARM /firmware d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootLoader\firmware_fit.merged /uefi d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootFirmware\uefi.fit /ffu d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\HummingBoardEdge_iMX6Q_2GB_TestOEMInput.xml.Release.ffu
     echo.
     echo Apply the WinPE image to an SD card (Physical Disk 7, use diskpart
     echo to find the disk number)
     echo.
-    echo    make-winpe.cmd /apply 7
+    echo    %SCRIPT_CMD% /apply 7
     echo.
     echo Clean up artifacts from a previous run of this script
     echo.
-    echo    make-winpe.cmd /clean
+    echo    %SCRIPT_CMD% /clean
     echo.
     exit /b 0
 
