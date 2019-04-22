@@ -18,11 +18,7 @@ echo.
 if %errorlevel% EQU 0 (
   echo %MAC:~0,2%:%MAC:~2,2%:%MAC:~4,2%:%MAC:~6,2%:%MAC:~8,2%:%MAC:~10,2% > c:\%WPE_FLASH_MARK%
   echo [92mSuccessfully flashed a new image to eMMC.[0m
+  wpeutil reboot
 ) else (
   echo [31mUnable to flash a new image to eMMC![0m
 )
-
-echo.
-echo [97mPress any key to restart the device... (remove the SD card when stopping on u-boot)[0m
-pause > nul
-wpeutil reboot

@@ -6,8 +6,12 @@ setlocal enableextensions disabledelayedexpansion
 
 set WINPE_DIR=%ProgramFiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\arm
 set DEST=winpe_imx
-set FFU_DISK_NUM=1
 set SCRIPT_DIR=%~dp0
+set SCRIPT_CMD=%~nx0
+set BUILD_DIR=%SCRIPT_DIR%..\solution\iMXPlatform\Build\ARM\Release\
+set FIRMWARE_PATH=%SCRIPT_DIR%..\board\VAB820_iMX6Q_1GB\Package\BootLoader\firmware_fit.merged
+set UEFI_PATH=%SCRIPT_DIR%..\board\VAB820_iMX6Q_1GB\Package\BootFirmware\uefi.fit
+set FFU_PATH=%SCRIPT_DIR%..\solution\iMXPlatform\Build\FFU\VAB820_iMX6Q_1GB\VAB820_iMX6Q_1GB_TestOEMInput.xml.Release.ffu
 
 :: make WIM mount directory
 rmdir /s /q mount > NUL 2>&1
@@ -31,7 +35,6 @@ popd
  if /I "%~1" == "/firmware" set FIRMWARE_PATH=%2& shift
  if /I "%~1" == "/uefi" set UEFI_PATH=%2& shift
  if /I "%~1" == "/ffu" set FFU_PATH=%2& shift
- if /I "%~1" == "/ffudisk" set FFU_DISK_NUM=%2& shift
  if /I "%~1" == "/apply" set DISK_NUM=%2& shift
  if /I "%~1" == "/clean" set CLEAN=1
  shift
@@ -40,18 +43,23 @@ if not (%1)==() goto GETOPTS
 if not "%CLEAN%" == "" goto CLEAN
 if not "%DISK_NUM%" == "" goto APPLY
 
-if "%BUILD_DIR%" == "" (
+if not exist "%BUILD_DIR%" (
     echo Missing required option '/builddir'. Type /? for usage.
     exit /b 1
 )
 
-if "%FIRMWARE_PATH%" == "" (
+if not exist "%FIRMWARE_PATH%" (
     echo Missing required option '/firmware'. Type /? for usage.
     exit /b 1
 )
 
-if "%UEFI_PATH%" == "" (
+if not exist "%UEFI_PATH%" (
     echo Missing required option '/uefi'. Type /? for usage.
+    exit /b 1
+)
+
+if not exist "%FFU_PATH%" (
+    echo Missing required option '/ffu'. Type /? for usage.
     exit /b 1
 )
 
@@ -98,22 +106,15 @@ echo Mounting WIM at %MOUNT_DIR%
 dism /mount-wim /wimfile:"%DEST%\sources\boot.wim" /mountdir:"%MOUNT_DIR%" /index:1 || goto err
 
 set STARTNET_CMD=%MOUNT_DIR%\Windows\System32\startnet.cmd
-if NOT "%FFU_PATH%" == "" (
-    echo Setting up FFU deployment to MMC
-    copy "%FFU_PATH%" "Flash.ffu"
-)
+
+echo Setting up FFU deployment to MMC
+copy "%FFU_PATH%" "Flash.ffu" /y || goto err
 
 echo Appending FFU flashing commands to %STARTNET_CMD%
 echo via_setup.cmd >> "%STARTNET_CMD%"
 
 echo Copying %SCRIPT_DIR%via_setup.cmd to %MOUNT_DIR%\Windows\System32\
 copy "%SCRIPT_DIR%via_setup.cmd" "%MOUNT_DIR%\Windows\System32\"
-
-echo Copying %SCRIPT_DIR%mk_sd_installer.cmd to %CD%
-copy "%SCRIPT_DIR%mk_sd_installer.cmd" "%CD%"
-
-echo Copying %SCRIPT_DIR%dd.exe to %CD%
-copy "%SCRIPT_DIR%dd.exe" "%CD%"
 
 echo Copying %SCRIPT_DIR%boot.scr %DEST%\
 copy "%SCRIPT_DIR%boot.scr" "%DEST%\"
@@ -157,7 +158,7 @@ exit /b 0
 :APPLY
     echo Applying image at %DEST% to physical disk %DISK_NUM%
     if not exist "%DEST%" (
-    echo No WinPE media directory found at %DEST%. Run the first form of this script to generate WinPE image layout.
+        echo No WinPE media directory found at %DEST%. Run the first form of this script to generate WinPE image layout.
         exit /b 1
     )
 
@@ -182,7 +183,7 @@ exit /b 0
     echo Copying uefi.fit to %MOUNT_DIR%
     copy "uefi.fit" "%MOUNT_DIR%\" || goto err
 
-    if NOT "%FFU_PATH%" == "" (
+    if exist "%FFU_PATH%" (
         echo Copying %FFU_PATH% to %CD%
         copy "%FFU_PATH%" "Flash.ffu"
     )
@@ -196,7 +197,8 @@ exit /b 0
 
     echo Success
     echo.
-    echo You might get the output: Error reading file: 87 The parameter is incorrect. This error can be ignored.
+    echo NOTE: please ignore "Error reading file: 87 The parameter is incorrect" if occured.
+    echo.
 
     rmdir /s /q "%MOUNT_DIR%" 2> NUL
     rmdir /s /q "%PACKAGES_DIR%" 2> NUL
@@ -208,15 +210,18 @@ exit /b 0
     echo Cleaning up from previous run
     dism /unmount-wim /mountdir:"%MOUNT_DIR%" /discard > NUL 2>&1
     rmdir /s /q "%MOUNT_DIR%" 2> NUL
+    rmdir /s /q "%PACKAGES_DIR%" 2> NUL
     rmdir /s /q "%DEST%" 2> NUL
-    del diskpart.txt
+    del firmware_fit.merged 2> NUL
+    del uefi.fit 2> NUL
+    del Flash.ffu 2> NUL
+    del diskpart.txt 2> NUL
     exit /b 0
 
 :USAGE
-    echo make-winpe.cmd /builddir build_dir /firmware firmware_fit_path
-    echo   /uefi uefi_fit_path [/ffu ffu_path] [/ffudisk ffu_disk_number]
-    echo make-winpe.cmd /apply disk_number
-    echo make-winpe.cmd /clean
+    echo %SCRIPT_CMD% /builddir build_dir /firmware firmware_fit_path /uefi uefi_fit_path /ffu ffu_path
+    echo %SCRIPT_CMD% /apply disk_number
+    echo %SCRIPT_CMD% /clean
     echo.
     echo Creates a WinPE image for i.MX
     echo Options:
@@ -225,30 +230,22 @@ exit /b 0
     echo    /firmware firmware_fit_path  Path to firmware_fit.merged
     echo    /uefi uefi_fit_path          Path to uefi.fit
     echo    /ffu ffu_path                Optionally specify an FFU to flash
-    echo    /ffudisk ffu_disk_number     Optionally specify the physical disk
-    echo                                 number to which the FFU is applied.
-    echo                                 Defaults to 1.
     echo    /apply disk_number           Apply WinPE image to physical disk
     echo    /clean                       Clean up artifacts from a previous run.
     echo.
     echo Examples:
     echo.
-    echo Create a WinPE image.
-    echo.
-    echo    make-winpe.cmd /builddir d:\build\Binaries\release\ARM /firmware d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootLoader\firmware_fit.merged /uefi d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootFirmware\uefi.fit
-    echo.
     echo Create a WinPE image that deploys an FFU to MMC.
     echo.
-    echo    make-winpe.cmd /builddir d:\build\Binaries\release\ARM /firmware d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootLoader\firmware_fit.merged /uefi d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootFirmware\uefi.fit /ffu d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\HummingBoardEdge_iMX6Q_2GB_TestOEMInput.xml.Release.ffu
+    echo    %SCRIPT_CMD% /builddir d:\build\Binaries\release\ARM /firmware d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootLoader\firmware_fit.merged /uefi d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\Package\BootFirmware\uefi.fit /ffu d:\build\FFU\HummingBoardEdge_iMX6Q_2GB\HummingBoardEdge_iMX6Q_2GB_TestOEMInput.xml.Release.ffu
     echo.
-    echo Apply the WinPE image to an SD card (Physical Disk 7, use diskpart
-    echo to find the disk number)
+    echo Apply the WinPE image to an SD card (Physical Disk 7, use diskpart to find the disk number)
     echo.
-    echo    make-winpe.cmd /apply 7
+    echo    %SCRIPT_CMD% /apply 7
     echo.
     echo Clean up artifacts from a previous run of this script
     echo.
-    echo    make-winpe.cmd /clean
+    echo    %SCRIPT_CMD% /clean
     echo.
     exit /b 0
 

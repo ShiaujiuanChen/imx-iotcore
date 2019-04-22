@@ -6,6 +6,7 @@ setlocal enableextensions disabledelayedexpansion
 
 set DEST=winpe_imx
 set SCRIPT_DIR=%~dp0
+set SCRIPT_CMD=%~nx0
 
 :: make WIM mount directory
 rmdir /s /q mount > NUL 2>&1
@@ -31,7 +32,7 @@ goto USAGE
 :APPLY
     echo Applying image at %DEST% to physical disk %DISK_NUM%
     if not exist "%DEST%" (
-    echo No WinPE media directory found at %DEST%. Run the first form of this script to generate WinPE image layout.
+        echo No WinPE media directory found at %DEST%. Run the first form of this script to generate WinPE image layout.
         exit /b 1
     )
 
@@ -56,7 +57,7 @@ goto USAGE
     echo Copying uefi.fit to %MOUNT_DIR%
     copy "uefi.fit" "%MOUNT_DIR%\" || goto err
 
-    if NOT "%FFU_PATH%" == "" (
+    if exist "%FFU_PATH%" (
         echo Copying %FFU_PATH% to %CD%
         copy "%FFU_PATH%" "Flash.ffu"
     )
@@ -70,7 +71,8 @@ goto USAGE
 
     echo Success
     echo.
-    echo You might get the output: Error reading file: 87 The parameter is incorrect. This error can be ignored.
+    echo NOTE: please ignore "Error reading file: 87 The parameter is incorrect" if occured.
+    echo.
 
     rmdir /s /q "%MOUNT_DIR%" 2> NUL
     del diskpart.txt
@@ -81,13 +83,13 @@ goto USAGE
     echo Cleaning up from previous run
     mountvol "%MOUNT_DIR%" /d > NUL 2>&1
     rmdir /s /q "%MOUNT_DIR%" 2> NUL
-    del diskpart.txt
+    del diskpart.txt 2> NUL
     exit /b 0
 
 :USAGE
     echo.
-    echo make-winpe.cmd /apply disk_number [/ffu ffu_path]
-    echo make-winpe.cmd /clean
+    echo %SCRIPT_CMD% /apply disk_number [/ffu ffu_path]
+    echo %SCRIPT_CMD% /clean
     echo.
     echo Creates a WinPE image for i.MX
     echo Options:
@@ -98,14 +100,13 @@ goto USAGE
     echo.
     echo Examples:
     echo.
-    echo Apply the WinPE image to an SD card (Physical Disk 7, use diskpart
-    echo to find the disk number)
+    echo Apply the WinPE image to an SD card (Physical Disk 7, use diskpart to find the disk number)
     echo.
-    echo    make-winpe.cmd /apply 7
+    echo    %SCRIPT_CMD% /apply 7
     echo.
     echo Clean up artifacts from a previous run of this script
     echo.
-    echo    make-winpe.cmd /clean
+    echo    %SCRIPT_CMD% /clean
     echo.
     exit /b 0
 
